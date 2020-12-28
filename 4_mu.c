@@ -1,7 +1,8 @@
-#define GFX_MAC
-#define GFX_DARWIN
-#define GFX_SDL
-#define GFX_GL3
+#ifndef GFX_ENV
+    #define GFX_ENV
+    #define GFX_MAC
+    #define GFX_GL33
+#endif
 #include "gfx/gfx.h"
 #define REN_MICROUI
 #include "gfx/ren.h"

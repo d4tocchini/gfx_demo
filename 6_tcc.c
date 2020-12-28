@@ -2,19 +2,18 @@
 // cc sdl-metal-example.m `sdl2-config --cflags --libs` -framework Metal -framework QuartzCore && ./a.out
 //
 // https://gist.github.com/TheSpydog/e8c6ce4854cb2ebdc1a69fb3dd5c978c
-# define GFX_MAC
-# define GFX_DARWIN
-# define GFX_SDL
-# define GFX_GL3
-# include "gfx/gfx.h"
-
-
-# include <stdio.h>
-# include <stdlib.h> // getenv
-# include <assert.h>
-# include "libtcc.h"
-# include <string.h> // memcpy
-# include <inttypes.h> // ptr types
+#ifndef GFX_ENV
+    #define GFX_ENV
+    #define GFX_MAC
+    #define GFX_GL3
+#endif
+#include "gfx/gfx.h"
+#include <stdio.h>
+#include <stdlib.h> // getenv
+#include <assert.h>
+#include "libtcc.h"
+#include <string.h> // memcpy
+#include <inttypes.h> // ptr types
 
 #define align_up(num, align) \
 	(((num) + ((align) - 1)) & ~((align) - 1))

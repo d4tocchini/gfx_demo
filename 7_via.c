@@ -1,12 +1,11 @@
 
-// #define GFX_MAC
-// #define GFX_DARWIN
-// #define GFX_SDL
-// #define GFX_GL33
 
-#define GFX_SDL
-#define GFX_WEBGL2
-
+#ifndef GFX_ENV
+    #define GFX_ENV
+    #define GFX_MAC
+    #define GFX_GL33
+    // #define GFX_WEBGL2
+#endif
 #include "gfx/gfx.h"
 #define REN_MICROUI
 #include "gfx/ren.h"
@@ -15,6 +14,10 @@
 #include<stdio.h>
 #include<errno.h>
 #include<time.h>
+
+#ifndef DEMO_IMG
+    #define DEMO_IMG "./data/img/d5.png"
+#endif
 
 static  char logbuf[64000];
 static   int logbuf_updated = 1;
@@ -613,6 +616,13 @@ int      vg_path_d_parse_n(const char* commandstring, int len, vg_path_data_t* o
         ++command_count;
         _VG_D_LOG_COMMAND(ch);
         switch (ch) {
+            /*
+            IDEAS:
+                o,O circle
+                e,E ellipse
+                r,R rect
+                rrectv?
+            */
             case 'M': { // moveto (dx,dy)+
                 comflag |= VG_D_MOVETO;
             }   break;
@@ -671,6 +681,9 @@ void ren_free_img(int handle) {
 }
 
 void ren_draw_img(ren_rect_t rect, int handle) {
+    float anchor_x = (float)ctx.mouse_x;
+    float anchor_y = (float)ctx.mouse_y;
+
     vg_t* vg = ctx.vg;
     float ix,iy,iw,ih,rect_ratio,img_ratio,alpha;
     alpha = 1.0f;
@@ -680,8 +693,6 @@ void ren_draw_img(ren_rect_t rect, int handle) {
     float rect_h = (float)rect.h;
     float rect_r = rect_x + rect_w;
     float rect_b = rect_y + rect_h;
-    float anchor_x = (float)ctx.mouse_x;
-    float anchor_y = (float)ctx.mouse_y;
     anchor_x = (anchor_x <= rect_x) ? rect_x
              : (anchor_x >= rect_r) ? rect_r
              :  anchor_x;
@@ -707,20 +718,30 @@ void ren_draw_img(ren_rect_t rect, int handle) {
 
     // printf("anchor = %f, %f\n",anchor_x,anchor_y);
 
-    vg_push(vg);
-        vg_clip(vg, rect_x, rect_y, rect_w, rect_h);
+
+
         // vg_tf_scale(vg, iw/rect_w, ih/rect_h);
-        // vg_tf_translate(vg,
-        //     ix, ih);
+        vg_tf_translate(vg, rect_x, rect_y);
         // img_paint = vg_img_pattern(vg, rect_x, rect_y, rect_w, rect_h, 0.0f, //0.0f/180.0f*NVG_PI,
-        img_paint = vg_img_pattern(vg, rect_x + ix, rect_y + iy, iw, ih, 0.0f, //0.0f/180.0f*NVG_PI,
+        vg_clip(vg, 0, 0, rect_w, rect_h);
+        img_paint = vg_img_pattern(vg, ix, iy, iw, ih, 0.0f, //0.0f/180.0f*NVG_PI,
             handle, alpha);
         vg_path(vg);
-        vg_rect(vg, rect_x, rect_y, rect_w, rect_h); // nvgRoundedRect(vg, tx,ty, thumb,thumb, 5);
+        vg_rect(vg, 0, 0, rect_w, rect_h); // nvgRoundedRect(vg, tx,ty, thumb,thumb, 5);
         vg_fill_paint(vg, img_paint);
         vg_fill(vg);
 
-    vg_pop(vg);
+        // vg_clip(vg, rect_x, rect_y, rect_w, rect_h);
+        // img_paint = vg_img_pattern(vg, rect_x + ix, rect_y + iy, iw, ih, 0.0f, //0.0f/180.0f*NVG_PI,
+        //     handle, alpha);
+        // vg_path(vg);
+        // vg_rect(vg, rect_x, rect_y, rect_w, rect_h); // nvgRoundedRect(vg, tx,ty, thumb,thumb, 5);
+        // vg_fill_paint(vg, img_paint);
+        // vg_fill(vg);
+
+    // vg_pop(vg);
+    vg_tf_translate(vg, ix, iy);
+    vg_tf_scale(vg, demo_img_scale, demo_img_scale);
 }
 
 vg_path_data_t sym[8];
@@ -733,8 +754,8 @@ vg_path_data_t sym[8];
 void draw_path_data(void)
 {
     vg_t* vg = ctx.vg;
-    vg_tf_scale(vg, demo_img_scale, demo_img_scale);
-    vg_push(vg);
+    // vg_push(vg);
+
     // vg_tf_translate(vg, 800, 300);
     vg_stroke_w(vg,1.0);
     vg_stroke_color(vg, vg_rgba(0,0,255,255));
@@ -767,12 +788,15 @@ void draw_path_data(void)
         vg_path_d(vg, sym[4]);
         // vg_stroke(vg);
         vg_fill(vg);
-    vg_pop(vg);
+    // vg_pop(vg);
 }
 
 static void render(void) {
-    ren_draw_img((ren_rect_t){.x=300,.y=80,.w=2000,.h=1120}, demo_img);
-
+    vg_t* vg = ctx.vg;
+    vg_push(vg);
+        ren_draw_img((ren_rect_t){.x=300,.y=80,.w=2000,.h=1120}, demo_img);
+        draw_path_data();
+    vg_pop(vg);
     mu_Context* mu = &ctx.mu;
     mu_begin(mu);
     // style_window(ctx, (ren_rect_t){.x=300,.y=1200,.w=2560,.h=200});
@@ -780,15 +804,14 @@ static void render(void) {
     test_window(mu, (ren_rect_t){.x=0,.y=0,.w=300,.h=1400});
     mu_end(mu);
     ren_DRAW();
-    draw_path_data();
 }
 
 static void setup(ren_ctx_t* ctx) {
     data_init();
 
-    SDL_MaximizeWindow(ctx->win);
+    win_max_size(ctx->win);
     ren_install_font_defaults();
-    demo_img = ren_load_img("./data/img/d5.png",
+    demo_img = ren_load_img(DEMO_IMG,
         // #ifndef GFX_WASM ?
         NVG_IMAGE_GENERATE_MIPMAPS
     );
