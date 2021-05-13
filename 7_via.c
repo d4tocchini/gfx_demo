@@ -110,6 +110,15 @@ static void write_log(const char *text) {
     #endif
 }
 
+// #define JSON_IMPLEMENTATION
+// #include "jsomd/json.h"
+
+// #define EL_WINDOW 1
+// #define EL_TREE_H 2
+// #define EL_TREE_N 3
+
+
+
 static void test_window(mu_Context *ctx, ren_rect_t rect) {
   /* do window */
   if (mu_begin_window(ctx, "Demo Window", rect)) {
@@ -490,6 +499,7 @@ static void loop()
     REN_DELAY_FRAME()
 }
 
+// #include "jsomd/example.c"
 int main(int argc, char **argv) {
     ren_ctx_t* ctx = ren_init_ctx();
     setup(ctx);

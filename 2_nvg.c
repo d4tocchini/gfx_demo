@@ -59,8 +59,8 @@ int main (int argc, char *args[])
 // #endif
 
     vg = win_create_vg(win, 0
-        // | VG_ACCEL
-        // | VG_VSYNC
+        | VG_ACCEL
+        | VG_VSYNC
     );
 
     if (loadDemoData(vg, &data) == -1)
@@ -107,7 +107,7 @@ int main (int argc, char *args[])
                 case SDL_QUIT: quit = true; break;
             }
         }
-        // SDL_GetMouseState(&mx, &my);
+        SDL_GetMouseState(&mx, &my);
 
         vg_viewport(vg,0,0,fb_w,fb_h);
         if (premult)
