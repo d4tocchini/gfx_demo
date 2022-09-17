@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en-us">
+<head>    
+    <title>~~~~~~~</title>
+    <link rel="preload" href="./8.js" as="script" />
+    <link rel="preload" href="./8.wasm" as="fetch" crossorigin />
+    <link rel="preload" href="./8.data" as="fetch" crossorigin />
+    <style>* {margin: 0; padding: 0; box-sizing: border-box; border: 0px none;} :root {min-height: 100vh; min-width: 100vw; background: black;}
+        canvas.emscripten {background-color: transparent; contain: paint;}
+        #wasm { contain: strict; display: flex; justify-content: center; align-content: start; align-items: start;
+            position: absolute; z-index: 1; top: 0px; left: 0px; width: 100vw; height: 100vh; transform: translate3d(0px, 0px, 0px);}        
+    </style>
+</head>
+<body>
+    <div id="wasm">
+        <canvas class="emscripten" id="canvas" oncontextmenu="event.preventDefault()" tabindex="-1"></canvas>
+    </div>
+    <script type="text/javascript">        
+        var _LOGS_ = [];
+        const LOG = location.href.includes("-dev") ? console.log : function(...args) {_LOGS_.push(JSON.stringify(args));}
+        const canvas = document.getElementById("canvas");                
+        canvas.addEventListener( "webglcontextlost", 
+            function (e) {
+                alert("Eek... your browser just farted, please reload");
+                e.preventDefault();
+            },
+            false
+        );
+        var Module = {
+            canvas,
+            totalDependencies: 0,
+            preRun: [],
+            postRun: [],
+            print(...text) {LOG(...text);},
+            setStatus(text) {LOG(`status: ${text}`);},            
+            printErr(...text) {                
+                if (!text[0].startsWith("emscripten_set_main_loop_timing"))
+                    console.error(...text);
+            },                        
+            monitorRunDependencies(left) {
+                this.totalDependencies = Math.max(this.totalDependencies, left);
+                Module.setStatus(left ? "Preparing... (" + (this.totalDependencies - left) + "/" + this.totalDependencies + ")"
+                        : "All downloads complete."
+                );
+            },
+        };        
+        window.onerror = function () {Module.printErr("Exception thrown, see JavaScript console");};
+    </script>
+    <script async type="text/javascript" src="8.js"></script>
+</body>
+
+</html>
+
