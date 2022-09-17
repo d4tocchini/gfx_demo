@@ -12,7 +12,7 @@
 int main (int argc, char *args[])
 {
     gfx_init();
-    win_t* win = gfx_create_win(WIN_FLOAT|WIN_BORDERLESS|WIN_TRANSPARENT);
+    win_t* win = win_create(WIN_FLOAT|WIN_BORDERLESS|WIN_TRANSPARENT);
 
     win_set_size(win, 720, 720);
     win_set_pos(win, WINPOS_CENTER, WINPOS_CENTER);

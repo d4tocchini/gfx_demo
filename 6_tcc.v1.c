@@ -110,11 +110,52 @@ char src0[] =
     // "# define VG_EXTERN_API \n"
     // "# include \"nanovg/src/nanovg.h\" \n"
 char src[] = STRINGIFY(
-    \#include "gfx_demo/6_tcc_el.h"
+    typedef struct vg_t 			vg_t;
+    typedef struct vg_color_t 		vg_color_t;
+    struct vg_color_t {
+    	union {
+    		float rgba[4];
+    		struct {
+    			float r,g,b,a;
+    		};
+    	};
+    };
+    void vg_path(vg_t* ctx);
+    void vg_rect(vg_t* ctx, float x, float y, float w, float h);
+    void vg_fill_color(vg_t* ctx, vg_color_t color);
+    void vg_fill(vg_t* ctx);
+    vg_color_t vg_rgba(unsigned char r, unsigned char g, unsigned char b, unsigned char a);
+    // # include <tcclib.h> /* include the "Simple libc header for TCC" */
+    // typedef struct vg_t 			vg_t;
+    void getmouse(int*m);
+    int* m;
+    void init(void)
+    {
+        getmouse(&m);
+    }
+    void render(vg_t* vg, int win_w, int win_h)
+    {
+        vg_path(vg);
+        vg_fill_color(vg, vg_rgba(0,192,0,70));
+        vg_rect(vg, 10, 10, win_w-20,win_h-20);
+        vg_fill(vg);
+        vg_path(vg);
+        vg_rect(vg, m[0] - 60, m[1], 120, 30);
+        vg_fill(vg);
+    }
+    void render2(vg_t* vg, int win_w, int win_h, int mx, int my)
+    {
+        vg_path(vg);
+        vg_fill_color(vg, vg_rgba(0,192,0,70));
+        vg_rect(vg, 10, 10, win_w-20,win_h-20);
+        vg_fill(vg);
+        vg_path(vg);
+        vg_rect(vg, mx-60,my, 120,30);
+        vg_fill(vg);
+    }
 );
 
 int mouse[3];
-__attribute__ ((visibility ("default")))
 void getmouse(int**m) {
     *m = mouse;
 }
@@ -125,70 +166,79 @@ int main (int argc, char *args[])
     int fb_w, fb_h;
     float px_ratio;
 
-    TCCState* el_cc;
-    el_cc = tcc_new();
-    if (!el_cc) {
+
+    TCCState* s;
+    s = tcc_new();
+    if (!s) {
         fprintf(stderr, "Could not create tcc state\n");
         exit(1);
     }
-    // assert( tcc_get_error_func(s) == NULL ); // assert( tcc_get_error_opaque(s) == NULL );
-    tcc_set_error_func(el_cc, stderr, tcc_on_error);
-    // assert(tcc_get_error_func(s) == tcc_on_error); // assert(tcc_get_error_opaque(s) == stderr);
+    // assert( tcc_get_error_func(s) == NULL );
+    // assert( tcc_get_error_opaque(s) == NULL );
 
+    tcc_set_error_func(s, stderr, tcc_on_error);
+
+    // assert(tcc_get_error_func(s) == tcc_on_error);
+    // assert(tcc_get_error_opaque(s) == stderr);
     TIME_BEGIN(TCC)
     const char* TCC_FLAGS = getenv("TCC_FLAGS");
     if (TCC_FLAGS) {
-        tcc_set_options(el_cc, TCC_FLAGS);
+        tcc_set_options(s, TCC_FLAGS);
         // printf("TCC_FLAGS %s\n",TCC_FLAGS);
     }
     else {
-        tcc_set_options(el_cc, STRINGIFY(
-            -nostdlib -nostdinc -m64
-            -Wno-implicit-function-declaration
-        ));
-        // tcc_set_options(el_cc, "  -O2 -pthread -nostdlib -nostdinc -m64 "
+        tcc_set_options(s, "-nostdlib -nostdinc -m64 -Wno-implicit-function-declaration");
+        // tcc_set_options(ctx, "  -O2 -pthread -nostdlib -nostdinc -m64 "
         //                     "-I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include "
         //                     "-I/usr/local/d4/code/d4/pkg/c/dep/lemongraph/lib "
         //                     "-I/usr/local/d4/code/d4/pkg/c/usr/lmdb/include "
         //                 );
-        // tcc_set_lib_path(el_cc, "/usr/local/d4/code/d4/usr/lib/tcc/include");
-        // tcc_add_include_path(el_cc, "/usr/local/d4/code/d4/usr/lib/tcc/include");
-        // tcc_add_include_path(el_cc, "/usr/local/d4/code/d4/usr/include");
-        // tcc_add_include_path(el_cc, "/usr/local/d4/code/d4/src");
-        // tcc_add_include_path(el_cc, "/usr/local/d4/code/d4/usr/include");
-        // tcc_add_library_path(el_cc, "/usr/local/d4/code/d4/usr/lib");
+        // tcc_set_lib_path(s, "/usr/local/d4/code/d4/usr/lib/tcc/include");
+        // tcc_add_include_path(s, "/usr/local/d4/code/d4/usr/lib/tcc/include");
+        // tcc_add_include_path(s, "/usr/local/d4/code/d4/usr/include");
+        // tcc_add_include_path(s, "/usr/local/d4/code/d4/src");
+        // tcc_add_include_path(s, "/usr/local/d4/code/d4/usr/include");
+        // tcc_add_library_path(s, "/usr/local/d4/code/d4/usr/lib");
     }
-    tcc_set_output_type(el_cc, TCC_OUTPUT_MEMORY);
-    // tcc_output_file(el_cc, path)
-    if (tcc_compile_string(el_cc, src) == -1)   return 1;
 
-    tcc_add_symbol(el_cc, "vg_path", vg_path);
-    tcc_add_symbol(el_cc, "vg_fill_color", vg_fill_color);
-    tcc_add_symbol(el_cc, "vg_fill", vg_fill);
-    tcc_add_symbol(el_cc, "vg_rect", vg_rect);
-    tcc_add_symbol(el_cc, "vg_rgba", vg_rgba);
-    tcc_add_symbol(el_cc, "getmouse", getmouse);
 
-    // if (tcc_relocate(el_cc, TCC_RELOCATE_AUTO) < 0)
+    tcc_set_output_type(s, TCC_OUTPUT_MEMORY);
+    // tcc_output_file(s, path)
+    // if (tcc_compile_string(s, src0) == -1)  return 1;
+    if (tcc_compile_string(s, src) == -1)   return 1;
+
+    tcc_add_symbol(s, "vg_path", vg_path);
+    tcc_add_symbol(s, "vg_fill_color", vg_fill_color);
+    tcc_add_symbol(s, "vg_fill", vg_fill);
+    tcc_add_symbol(s, "vg_rect", vg_rect);
+    tcc_add_symbol(s, "vg_rgba", vg_rgba);
+    tcc_add_symbol(s, "getmouse", getmouse);
+
+
+    // if (tcc_relocate(s, TCC_RELOCATE_AUTO) < 0)
     //     return 1;
 
-    void* el_ob;
-    int el_ob_size = tcc_relocate(el_cc, NULL);
-    assert(el_ob_size > 0);
-    el_ob = aligned_malloc(64, el_ob_size);
-    assert(tcc_relocate(el_cc, el_ob) >= 0);
+    void* lib;
+    int lib_size = tcc_relocate(s, NULL);
+    if (lib_size == -1)
+        return 1;
+    int pgsize = getpagesize();
+    lib = aligned_malloc(64, lib_size);
+        // lib = malloc(lib_size);
+    if (tcc_relocate(s, lib) < 0)
+        return 1;
 
-    void (*el_render)(vg_t* vg, int win_w, int win_h);
-    void (*el_init)(void);
-    el_init = tcc_get_symbol(el_cc, "init");
-    el_render = tcc_get_symbol(el_cc, "render");
+    void (*render)(vg_t* vg, int win_w, int win_h);
+    void (*init)(void);
 
-    assert(el_render);
-    TIME_END(TCC)
-    printf("el_ob size = %i \n", el_ob_size);
-    printf("el_ob addr = %" PRIXPTR " \n", (uintptr_t)el_ob);
+    init = tcc_get_symbol(s, "init");
+    render = tcc_get_symbol(s, "render");
+    if (!render)
+        return 1;
 
-    tcc_delete(el_cc); // no longer need compiler state
+    uintptr_t fun_offset = (uintptr_t)render - (uintptr_t)lib;
+    assert((uintptr_t)render == (uintptr_t)lib + fun_offset);
+    render = lib + fun_offset;
 
     /*
     testing if compiled code is safe to copy/persist
@@ -197,36 +247,37 @@ int main (int argc, char *args[])
         * https://github.com/tobegit3hub/hotpatch
     */
 
-    /*
-    uintptr_t fun_offset = (uintptr_t)el_render - (uintptr_t)el_ob;
-    assert((uintptr_t)el_render == (uintptr_t)el_ob + fun_offset);
-    el_render = el_ob + fun_offset;
-    printf("fun addr = %" PRIXPTR " \n", (uintptr_t)el_render);
-    printf("fun offset = %i \n", fun_offset);
-    */
+    TIME_END(TCC)
 
-    // int pgsize = getpagesize();
-    // void* mem = aligned_malloc(64, el_ob_size);
-    // // // void* mem = malloc(el_ob_size);
-    // memcpy(mem, el_ob, el_ob_size);
-    // int remainder = (uintptr_t)el_render % pgsize;
+    printf("lib size = %i \n", lib_size);
+    printf("lib addr = %" PRIXPTR " \n", (uintptr_t)lib);
+    printf("fun addr = %" PRIXPTR " \n", (uintptr_t)render);
+    printf("fun offset = %i \n", fun_offset);
+
+    // void* mem = aligned_malloc(64, lib_size);
+    // // // void* mem = malloc(lib_size);
+    // memcpy(mem, lib, lib_size);
+    // int remainder = (uintptr_t)render % pgsize;
     // printf("pgsize = %i \n", pgsize);
     // printf("pgsize remainder = %i \n", pgsize);
-    // mprotect(mem + fun_offset - remainder, el_ob_size - fun_offset + remainder, PROT_EXEC|PROT_READ);
-    // el_render = mem + fun_offset;
+    // mprotect(mem + fun_offset - remainder, lib_size - fun_offset + remainder, PROT_EXEC|PROT_READ);
+    // render = mem + fun_offset;
 
     // // testing reading/writing compiled code
-    // FILE *el_ob_file = fopen ("6.dat", "w+");
-    // if (!el_ob_file)
+    // FILE *lib_file = fopen ("6.dat", "w+");
+    // if (!lib_file)
     //     fprintf(stderr, "ERROR opening file");
-    // fread(&mem, el_ob_size, 1, el_ob_file);
-    // // fwrite(el_ob, el_ob_size, 1, el_ob_file);
-    // fclose(el_ob_file);
+    // fread(&mem, lib_size, 1, lib_file);
+    // // fwrite(lib, lib_size, 1, lib_file);
+    // fclose(lib_file);
+
+    // no longer need compiler state
+    tcc_delete(s);
+
+    // free(lib);
 
 
-
-
-    el_init();
+    init();
 
     gfx_init();
     win_t* win = win_create(WIN_FLOAT|WIN_BORDERLESS|WIN_TRANSPARENT);
@@ -249,7 +300,6 @@ int main (int argc, char *args[])
     SDL_Event e;
     printf("----\n");
     // printf("-------------\n");
-    int prev_mouse[2];
     while (!quit) {
         while (SDL_PollEvent(&e) != 0) {
             switch (e.type) {
@@ -257,22 +307,15 @@ int main (int argc, char *args[])
             }
         }
         mouse[2] = SDL_GetMouseState(&mouse[0], &mouse[1]);
-        if (prev_mouse[0] == mouse[0] && prev_mouse[1] == mouse[1]) {
-            SDL_Delay(16);
-            continue;
-        }
-        prev_mouse[0] = mouse[0];
-        prev_mouse[1] = mouse[1];
         // printf("mx=%i\n",mouse[0]);
         vg_viewport(vg,0,0,fb_w,fb_h);
         vg_clear(vg, clear);
         vg_frame_begin(vg, win_w, win_h, px_ratio);
-        el_render(vg, win_w, win_h);
+        render(vg, win_w, win_h);
 		vg_frame_end(vg);
         // // vg_did_render(vg);
         win_did_render(win);
         gfx_did_render();
-        // SDL_Delay(15);
     }
 
 
@@ -281,7 +324,7 @@ int main (int argc, char *args[])
     win_destroy(win);
     SDL_Quit();
 
-    aligned_free(el_ob);
+    aligned_free(lib);
     // aligned_free(mem);
     return 0;
 }

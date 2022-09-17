@@ -43,7 +43,7 @@ int main (int argc, char *args[])
 // 	    glfwWindowHint(GLFW_SAMPLES, 4);
 // #   endif
 
-    if ( !(win = gfx_create_win(WIN_RESIZEABLE)) ) {
+    if ( !(win = win_create(WIN_RESIZEABLE)) ) {
         puts("Failed to create window");
         return -1;
     }
@@ -60,7 +60,7 @@ int main (int argc, char *args[])
 
     vg = win_create_vg(win, 0
         | VG_ACCEL
-        | VG_VSYNC
+        // | VG_VSYNC
     );
 
     if (loadDemoData(vg, &data) == -1)

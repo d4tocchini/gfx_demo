@@ -12,27 +12,39 @@
 #include<stdio.h>
 #include<errno.h>
 #include<time.h>
-#define	O_RDWR		0x0002
-#define	O_CREAT		0x0200
-#include "lemongraph.h"
+// #define	O_RDWR		0x0002
+// #define	O_CREAT		0x0200
+// #include "lemongraph.h"
 
 
-const char * const  path = "./.tmp/graph";
-const int           mode = 0760;
-const int           os_flags = O_RDWR | O_CREAT;
-      int           db_flags = 0;
+// #define LG_FORCE_32BIT
+#define LG_IMPLEMENTATION
+#define LG_NO_AVL
+#define LG_NO_AFSYNC
+#include "lg/lib/api.h"
 
-      graph_t g;
+
+// const char * const  path = "./.tmp/graph";
+// const int           mode = 0760;
+// const int           os_flags = O_RDWR | O_CREAT;
+//       int           db_flags = 0;
+
+//       graph_t g;
+
+LG_graph g;
 
 int g_init() {
-    g = graph_open(path,
-        os_flags, mode,
-        db_flags//|DB_NOSYNC|DB_NORDAHEAD
-    );
-    if (g == NULL) {
-        fprintf(stderr, graph_strerror(errno));
-        return 1;
-    }
+    // g = graph_open(path,
+    //     os_flags, mode,
+    //     db_flags//|DB_NOSYNC|DB_NORDAHEAD
+    // );
+    // if (g == NULL) {
+    //     fprintf(stderr, graph_strerror(errno));
+    //     return 1;
+    // }
+    lg_init("data/.lg/");
+    lg_open(&g, "graph", LG_NO_TLS|LG_NO_LOCK|LG_NO_FSYNCMETA|LG_NO_FLUSH);    
+    // 
     return 0;
 }
 
@@ -45,7 +57,30 @@ static logID_t msg_logid = 0;
 #define NEEDS_UPDATE (logbuf_updated)
 
 static void read_log() {
-    logbuf[0] = '\0';
+    logbuf[0] = '\0';  
+    LG_READ(&g,
+      msg_logid = lg_log_next(txn);            
+      LG_iter it;
+      LG_str n_type = str_ro_("msg");
+      LG_id n_id;
+      LG_Node node;
+      LG_Blob blob;
+      int i = 0; 
+      nodes_type_b4_(&it, n_type, msg_logid);
+      while (n_id = lg_iter_next(&it)) {  
+          printf("msg_logid=%i, n_id:%i\n",msg_logid,n_id);
+          ++i;  
+          node_read_(n_id, &node);
+          blob_read_(node.val, &blob);          
+          strcat(logbuf, blob.string);
+          strcat(logbuf, "\n");
+      }
+      lg_iter_close(&it);
+      printf("msg_logid=%i, added:%i\n",msg_logid,i);
+    )
+    
+
+#if LG_LEGACY_LEMONGRAPH
     // txn
     graph_txn_t txn = graph_txn_begin(g, NULL, DB_RDONLY);
     if (txn == NULL) {
@@ -73,13 +108,18 @@ static void read_log() {
     graph_txn_abort(txn);
     //
     // logbuf_updated = 1;
+#endif    
 }
 
 static void write_log(const char *text) {
 //   if (logbuf[0]) { strcat(logbuf, "\n"); }
 //   strcat(logbuf, text);
   logbuf_updated = 1;
-
+  LG_WRITE(&g,
+    node_(str_("msg"), str_(text));
+    msg_logid = lg_log_next(txn);
+  )
+#if LG_LEGACY_LEMONGRAPH
     graph_txn_t txn = graph_txn_begin(g, NULL, 0);
     if (txn == NULL) {
         return ;
@@ -91,6 +131,7 @@ static void write_log(const char *text) {
 
     msg_logid = graph_log_nextID(txn);
     graph_txn_commit(txn);
+#endif
 }
 
 static void test_window(mu_Context *ctx) {
@@ -281,23 +322,46 @@ static void render(mu_Context *ctx) {
   mu_end(ctx);
 }
 
-int main(int argc, char **argv) {
-    g_init();
-    // read_log();
-  ren_ctx_t* ctx = ren_init_ctx();
-  SDL_MaximizeWindow(ctx->win);
-  ren_install_font_defaults();
-  while (true) {
-    if ((ren_INPUT()|NEEDS_UPDATE) == 0) {
-      ren_delay(16);
-      continue;
+
+ren_ctx_t* ren_ctx;
+
+static void loop()
+{
+
+    // if ((ren_INPUT()|NEEDS_UPDATE) == 0) {
+    //   ren_delay(16);
+    //   continue;
+    // }
+    // render(ctx);
+    // ren_BEGIN();
+    // ren_DRAW();
+    // ren_END();
+    // ren_present();
+
+    if (ren_INPUT() != 0) {
+      render(ren_ctx);
+      ren_BEGIN();
+      ren_DRAW();
+      ren_END();
+      ren_present();
     }
-    render(ctx);
-    ren_BEGIN();
-    ren_DRAW();
-    ren_END();
-    ren_present();
-  }
+    REN_DELAY_FRAME()
+}
+
+int main(int argc, char **argv) {
+  
+  // https://github.com/microsoft/mimalloc/issues/308
+  mi_reserve_os_memory( 1UL << 30 /*1GiB*/,  false /*commit*/, true /*allow large*/ );
+
+  g_init();
+  // read_log();
+  ren_ctx = ren_init_ctx();
+  SDL_MaximizeWindow(ren_ctx->win);
+  ren_install_font_defaults();
+  
+  // for wasm
+  REN_LOOP(loop)
+  
   ren_destroy();
   return 0;
 }

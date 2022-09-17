@@ -1,8 +1,4 @@
 *kdev4
 *.code-workspace
-1
-2
-3
-2.c
-3.c
-images
+.DS_STORE
+*.dSYM

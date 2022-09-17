@@ -15,6 +15,7 @@
 #include<errno.h>
 #include<time.h>
 
+#define DEMO_LG 0
 #ifndef DEMO_LG
     #define DEMO_LG 0
 #endif

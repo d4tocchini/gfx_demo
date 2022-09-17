@@ -8,14 +8,14 @@ struct vg_color_t {
         };
     };
 };
-void vg_path(vg_t* ctx);
-void vg_rect(vg_t* ctx, float x, float y, float w, float h);
-void vg_fill_color(vg_t* ctx, vg_color_t color);
-void vg_fill(vg_t* ctx);
-vg_color_t vg_rgba(unsigned char r, unsigned char g, unsigned char b, unsigned char a);
+extern void vg_path(vg_t* ctx);
+extern void vg_rect(vg_t* ctx, float x, float y, float w, float h);
+extern void vg_fill_color(vg_t* ctx, vg_color_t color);
+extern void vg_fill(vg_t* ctx);
+extern vg_color_t vg_rgba(unsigned char r, unsigned char g, unsigned char b, unsigned char a);
 // # include <tcclib.h> /* include the "Simple libc header for TCC" */
 // typedef struct vg_t 			vg_t;
-void getmouse(int*m);
+extern void getmouse(int*m);
 int* m;
 void init(void)
 {
