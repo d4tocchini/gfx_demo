@@ -546,7 +546,7 @@ var compilerSettings = {
  "BINARYEN_ASYNC_COMPILATION": true,
  "BINARYEN_EXTRA_PASSES": "",
  "BINARYEN_IGNORE_IMPLICIT_TRAPS": false,
- "BINARYEN_MEM_MAX": 2147483648,
+ "BINARYEN_MEM_MAX": 1073741824,
  "BINARYEN_METHOD": "native-wasm",
  "BINARYEN_PASSES": "",
  "BINARYEN_SCRIPTS": "",
@@ -646,7 +646,7 @@ var compilerSettings = {
  "IGNORE_MISSING_MAIN": true,
  "IMPORTED_MEMORY": 1,
  "INCLUDE_FULL_LIBRARY": false,
- "INITIAL_MEMORY": 16777216,
+ "INITIAL_MEMORY": 33554432,
  "INITIAL_TABLE": -1,
  "INLINING_LIMIT": false,
  "INVOKE_RUN": true,
@@ -666,7 +666,7 @@ var compilerSettings = {
  "MAIN_MODULE": 0,
  "MAIN_READS_PARAMS": true,
  "MALLOC": "dlmalloc",
- "MAXIMUM_MEMORY": 2147483648,
+ "MAXIMUM_MEMORY": 1073741824,
  "MAX_WEBGL_VERSION": 2,
  "MAYBE_WASM2JS": false,
  "MEMFS_APPEND_TO_TYPED_ARRAYS": 1,
@@ -768,7 +768,7 @@ var compilerSettings = {
  "TARGET_NOT_SUPPORTED": 2147483647,
  "TEST_MEMORY_GROWTH_FAILS": false,
  "TEXTDECODER": 1,
- "TOTAL_MEMORY": 16777216,
+ "TOTAL_MEMORY": 33554432,
  "TOTAL_STACK": 5242880,
  "TRACE_WEBGL_CALLS": false,
  "TRANSPILE_TO_ES5": false,
@@ -1001,7 +1001,7 @@ var TOTAL_STACK = 5242880;
 
 if (Module["TOTAL_STACK"]) assert(TOTAL_STACK === Module["TOTAL_STACK"], "the stack size can no longer be determined at runtime");
 
-var INITIAL_MEMORY = Module["INITIAL_MEMORY"] || 16777216;
+var INITIAL_MEMORY = Module["INITIAL_MEMORY"] || 33554432;
 
 legacyModuleProp("INITIAL_MEMORY", "INITIAL_MEMORY");
 
@@ -1018,7 +1018,7 @@ if (ENVIRONMENT_IS_PTHREAD) {
  } else {
   wasmMemory = new WebAssembly.Memory({
    "initial": INITIAL_MEMORY / 65536,
-   "maximum": 2147483648 / 65536,
+   "maximum": 1073741824 / 65536,
    "shared": true
   });
   if (!(wasmMemory.buffer instanceof SharedArrayBuffer)) {
@@ -1383,7 +1383,7 @@ var tempDouble;
 var tempI64;
 
 var ASM_CONSTS = {
- 163680: $0 => {
+ 163712: $0 => {
   var str = UTF8ToString($0) + "\n\n" + "Abort/Retry/Ignore/AlwaysIgnore? [ariA] :";
   var reply = window.prompt(str, "i");
   if (reply === null) {
@@ -1391,7 +1391,7 @@ var ASM_CONSTS = {
   }
   return allocate(intArrayFromString(reply), "i8", ALLOC_NORMAL);
  },
- 163905: () => {
+ 163937: () => {
   if (typeof AudioContext !== "undefined") {
    return true;
   } else if (typeof webkitAudioContext !== "undefined") {
@@ -1399,7 +1399,7 @@ var ASM_CONSTS = {
   }
   return false;
  },
- 164052: () => {
+ 164084: () => {
   if (typeof navigator.mediaDevices !== "undefined" && typeof navigator.mediaDevices.getUserMedia !== "undefined") {
    return true;
   } else if (typeof navigator.webkitGetUserMedia !== "undefined") {
@@ -1407,7 +1407,7 @@ var ASM_CONSTS = {
   }
   return false;
  },
- 164286: $0 => {
+ 164318: $0 => {
   if (typeof Module["SDL2"] === "undefined") {
    Module["SDL2"] = {};
   }
@@ -1429,11 +1429,11 @@ var ASM_CONSTS = {
   }
   return SDL2.audioContext === undefined ? -1 : 0;
  },
- 164779: () => {
+ 164811: () => {
   var SDL2 = Module["SDL2"];
   return SDL2.audioContext.sampleRate;
  },
- 164847: ($0, $1, $2, $3) => {
+ 164879: ($0, $1, $2, $3) => {
   var SDL2 = Module["SDL2"];
   var have_microphone = function(stream) {
    if (SDL2.capture.silenceTimer !== undefined) {
@@ -1474,7 +1474,7 @@ var ASM_CONSTS = {
    }, have_microphone, no_microphone);
   }
  },
- 166499: ($0, $1, $2, $3) => {
+ 166531: ($0, $1, $2, $3) => {
   var SDL2 = Module["SDL2"];
   SDL2.audio.scriptProcessorNode = SDL2.audioContext["createScriptProcessor"]($1, 0, $0);
   SDL2.audio.scriptProcessorNode["onaudioprocess"] = function(e) {
@@ -1486,7 +1486,7 @@ var ASM_CONSTS = {
   };
   SDL2.audio.scriptProcessorNode["connect"](SDL2.audioContext["destination"]);
  },
- 166909: ($0, $1) => {
+ 166941: ($0, $1) => {
   var SDL2 = Module["SDL2"];
   var numChannels = SDL2.capture.currentCaptureBuffer.numberOfChannels;
   for (var c = 0; c < numChannels; ++c) {
@@ -1505,7 +1505,7 @@ var ASM_CONSTS = {
    }
   }
  },
- 167514: ($0, $1) => {
+ 167546: ($0, $1) => {
   var SDL2 = Module["SDL2"];
   var numChannels = SDL2.audio.currentOutputBuffer["numberOfChannels"];
   for (var c = 0; c < numChannels; ++c) {
@@ -1518,7 +1518,7 @@ var ASM_CONSTS = {
    }
   }
  },
- 167994: $0 => {
+ 168026: $0 => {
   var SDL2 = Module["SDL2"];
   if ($0) {
    if (SDL2.capture.silenceTimer !== undefined) {
@@ -1556,7 +1556,7 @@ var ASM_CONSTS = {
    SDL2.audioContext = undefined;
   }
  },
- 169166: ($0, $1, $2) => {
+ 169198: ($0, $1, $2) => {
   var w = $0;
   var h = $1;
   var pixels = $2;
@@ -1627,7 +1627,7 @@ var ASM_CONSTS = {
   }
   SDL2.ctx.putImageData(SDL2.image, 0, 0);
  },
- 170635: ($0, $1, $2, $3, $4) => {
+ 170667: ($0, $1, $2, $3, $4) => {
   var w = $0;
   var h = $1;
   var hot_x = $2;
@@ -1664,20 +1664,20 @@ var ASM_CONSTS = {
   stringToUTF8(url, urlBuf, url.length + 1);
   return urlBuf;
  },
- 171624: $0 => {
+ 171656: $0 => {
   if (Module["canvas"]) {
    Module["canvas"].style["cursor"] = UTF8ToString($0);
   }
  },
- 171707: () => {
+ 171739: () => {
   if (Module["canvas"]) {
    Module["canvas"].style["cursor"] = "none";
   }
  },
- 171776: () => {
+ 171808: () => {
   return window.innerWidth;
  },
- 171806: () => {
+ 171838: () => {
   return window.innerHeight;
  }
 };
@@ -8825,7 +8825,7 @@ function _emscripten_request_pointerlock(target, deferUntilInEventHandler) {
 }
 
 function getHeapMax() {
- return 2147483648;
+ return 1073741824;
 }
 
 function emscripten_realloc_buffer(size) {
@@ -11321,11 +11321,11 @@ var _free = Module["_free"] = createExportWrapper("free");
 
 var _main = Module["_main"] = createExportWrapper("__main_argc_argv");
 
+var _saveSetjmp = Module["_saveSetjmp"] = createExportWrapper("saveSetjmp");
+
 var _pthread_self = Module["_pthread_self"] = createExportWrapper("pthread_self");
 
 var ___errno_location = Module["___errno_location"] = createExportWrapper("__errno_location");
-
-var _saveSetjmp = Module["_saveSetjmp"] = createExportWrapper("saveSetjmp");
 
 var __emscripten_tls_init = Module["__emscripten_tls_init"] = createExportWrapper("_emscripten_tls_init");
 
