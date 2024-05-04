@@ -110,7 +110,7 @@ char src0[] =
     // "# define VG_EXTERN_API \n"
     // "# include \"nanovg/src/nanovg.h\" \n"
 char src[] = STRINGIFY(
-    \#include "gfx_demo/6_tcc_el.h"
+    \#include "./data/6_tcc_el.h"
 );
 
 int mouse[3];
@@ -142,10 +142,17 @@ int main (int argc, char *args[])
         // printf("TCC_FLAGS %s\n",TCC_FLAGS);
     }
     else {
-        tcc_set_options(el_cc, STRINGIFY(
-            -nostdlib -nostdinc -m64
+        tcc_set_options(el_cc, STRINGIFY(            
+            -fno-leading-underscore
+            -nostdlib -nostdinc 
+            -m64 -std=c11 
             -Wno-implicit-function-declaration
         ));
+        // -nostdlib -nostdinc 
+        // -pthread                      same as -D_REENTRANT and -lpthread
+        // -static                       link to static libraries (not recommended)
+        // -fcommon                         use common section instead of bss
+        // -O1
         // tcc_set_options(el_cc, "  -O2 -pthread -nostdlib -nostdinc -m64 "
         //                     "-I/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include "
         //                     "-I/usr/local/d4/code/d4/pkg/c/dep/lemongraph/lib "
@@ -157,6 +164,32 @@ int main (int argc, char *args[])
         // tcc_add_include_path(el_cc, "/usr/local/d4/code/d4/src");
         // tcc_add_include_path(el_cc, "/usr/local/d4/code/d4/usr/include");
         // tcc_add_library_path(el_cc, "/usr/local/d4/code/d4/usr/lib");
+        // -bench       show compilation statistics
+        // -nostdinc    do not use standard system include paths
+        // -nostdlib    do not link with standard crt and libraries
+        // -P -P1                        with -E: no/alternative #line output
+        // -dD -dM                       with -E: output #define directives
+        // -pthread                      same as -D_REENTRANT and -lpthread
+        // -On                           same as -D__OPTIMIZE__ for n > 0
+        // -Wp,-opt                      same as -opt
+        // -include file                 include 'file' above each input file
+        // -isystem dir                  add 'dir' to system include path
+        // -static                       link to static libraries (not recommended)
+        // -dumpversion                  print version
+        // -print-search-dirs            print search paths
+        // -dt                           with -run/-E: auto-define 'test_...' macros
+        // -Wl,... linker options:
+        //     -nostdlib                     do not link with standard crt/libs
+        //     -[no-]whole-archive           load lib(s) fully/only as needed
+        //     -export-all-symbols           same as -rdynamic
+        //     -export-dynamic               same as -rdynamic
+        //     -image-base= -Ttext=          set base address of executable
+        //     -section-alignment=           set section alignment in executable
+        //     -rpath=                       set dynamic library search path
+        //     -enable-new-dtags             set DT_RUNPATH instead of DT_RPATH
+        //     -soname=                      set DT_SONAME elf tag
+        //     -Bsymbolic                    set DT_SYMBOLIC elf tag
+        //     -oformat=[elf32/64-* binary]  set executable output format
     }
     tcc_set_output_type(el_cc, TCC_OUTPUT_MEMORY);
     // tcc_output_file(el_cc, path)

@@ -57,24 +57,27 @@ _header_draw_bg(
     // vg_push(_vg);
     vg_reset(_vg);
     
-    vg_font_name(_vg, "display");
-    vg_font_size(_vg, 90.0f);
-    vg_text_lineh(_vg, 1.1f);
-    vg_text_tracking(_vg, 26.0f);
-    vg_text_align(_vg, NVG_ALIGN_CENTER|NVG_ALIGN_TOP);
-    // nvgFillColor(_vg, nvgRGBA(0,0,0,220));
-    nvgFillPaint(_vg, 
-        nvgLinearGradient(_vg, _x, _y, _x+_w, _y+_h, 
-            nvgRGBA(163, 108, 36, 255),
-            nvgRGBA(200, 200, 200, 255) 
-        )
-    );
-    vg_textbox(_vg, doc.vp_w/6,doc.vp_h*5/18, doc.vp_w*4/6, "WE TURN LEADERSHIT INTO LEADERSHIP", NULL);
-    
-    
-    
-    // vg_pop(_vg);
-    vg_reset(_vg);
+    {
+        float x = doc.vp_w/6;
+        float y = doc.vp_h*5/18;
+        float w = doc.vp_w*4/6;
+        vg_font_name(_vg, "display");
+        vg_font_size(_vg, 80.0f);
+        vg_text_lineh(_vg, 1.1f);
+        vg_text_tracking(_vg, 20.0f);
+        vg_text_align(_vg, NVG_ALIGN_CENTER|NVG_ALIGN_TOP);
+        // nvgFillColor(_vg, nvgRGBA(0,0,0,220));
+        vg_fill_paint(_vg, 
+            vg_gradient(_vg, x, y, x+w, y+80.0f, 
+                vg_rgba(163, 108, 36, 255),
+                vg_rgba(255, 0, 0, 255)
+            )
+        );
+        vg_textbox(_vg, x,y, w, "WE TURN LEADERSHIT INTO LEADERSHIP", NULL);    
+        
+        // vg_pop(_vg);
+        vg_reset(_vg);
+    }
 }
 
 void
@@ -142,8 +145,12 @@ void header_layout(int idx)
 }
 
 void header_drawlayer(int idx, int layer)
-{   ___
+{   ___    
     View self = view_read(idx);
+
+    if ((self.rect.y > doc.vp_h) || (self.rect.y + self.rect.h < 0))
+        return;
+
     Header_State* state = (Header_State*)self.state;
     // const float _w = self.rect.w;
     // const float _h = self.rect.h;
@@ -186,21 +193,21 @@ void header_drawlayer(int idx, int layer)
             // write state
             state->bg_img = bg_img;
         }
-        else {
-            const Vec4f rect = state->bg_rect;
-            const float _w = rect.w;
-            const float _h = rect.h;
-            const float px_ratio = doc.px_ratio;
-            vg_t* vg = doc.vg;
-            // begin_draw
-            vg_fb_bind(bg_img.fb); glViewport(0, 0, _w, _h); glClearColor(0, 0, 0, 0); glClear(GL_COLOR_BUFFER_BIT|GL_STENCIL_BUFFER_BIT);            
-            GPU_FlushBlitBuffer(); // ??? IMPORTANT: run GPU_FlushBlitBuffer before nvgBeginFrame
-            vg_frame_begin(vg, _w, _h, px_ratio);
-            // draw
-            bg_img.draw(vg, rect);
-            // end
-            vg_frame_end(vg); vg_fb_bind(NULL); GPU_ResetRendererState();        
-        }
+        // else {
+        //     const Vec4f rect = state->bg_rect;
+        //     const float _w = rect.w;
+        //     const float _h = rect.h;
+        //     const float px_ratio = doc.px_ratio;
+        //     vg_t* vg = doc.vg;
+        //     // begin_draw
+        //     vg_fb_bind(bg_img.fb); glViewport(0, 0, _w, _h); glClearColor(0, 0, 0, 0); glClear(GL_COLOR_BUFFER_BIT|GL_STENCIL_BUFFER_BIT);            
+        //     GPU_FlushBlitBuffer(); // ??? IMPORTANT: run GPU_FlushBlitBuffer before nvgBeginFrame
+        //     vg_frame_begin(vg, _w, _h, px_ratio);
+        //     // draw
+        //     bg_img.draw(vg, rect);
+        //     // end
+        //     vg_frame_end(vg); vg_fb_bind(NULL); GPU_ResetRendererState();        
+        // }
         return;
     }
 
@@ -246,6 +253,8 @@ Proto Header = {
     .layout = &header_layout,
     .drawlayer = &header_drawlayer
 }; 
+
+
 
 
 // CONSTRUCTOR(__header__) {

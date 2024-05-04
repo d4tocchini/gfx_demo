@@ -108,7 +108,7 @@ typedef struct
 View 
 {
     Vec4f       rect;    
-    float       matrix[16];
+    // float       matrix[16];
     float       x;
     float       y;
     float       w;
@@ -196,7 +196,7 @@ view_create(View view)
     Proto* proto = view.proto;
     assert(proto != NULL);    
 
-    GPU_MatrixIdentity(&view.matrix);
+    // GPU_MatrixIdentity(&view.matrix);
     view.flags |= VIEW_EXISTS | VIEW_NEEDS_ALL;
 
     View_Id id = view_alloc();
@@ -344,21 +344,43 @@ VG_Image;
 
 // ----------------------------------------------------------------------------
 
-#include "./views/header.h"
-#include "./views/scroller.h"
+#include "./data/views/header.c"
+#include "./data/views/scroller.h"
 
 // ----------------------------------------------------------------------------
 
+
+
+    
+// #include <dlfcn.h>
+
+// Proto* Header;
+
+// void
+// _init_modules(void)
+// {
+//     // DYLD_LIBRARY_PATH WTF https://github.com/flandr/wtf-osx-dlopen
+//     void *mod;
+//     mod = dlopen("./data/views/header.so", RTLD_LOCAL | RTLD_LAZY | RTLD_FIRST );
+//     if (!mod) {
+//         fputs (dlerror(), stderr);
+//         exit(1);
+//     }
+//     Header = (Proto*)dlsym(mod, "Header");
+// }
 
 // ----------------------------------------------------------------------------
 
 void
 document_init(void)
 {   ___
+
+    // _init_modules();
+
     view_alloc();
     doc.layers = DRAWLAYERS_NUM;
-    doc.vp_w = 72*18*1.5;
-    doc.vp_h = 72*12*1.5;
+    doc.vp_w = 72*20;
+    doc.vp_h = 72*11;
     doc.px_ratio = 1.0f;
     doc.target = GPU_Init(doc.vp_w, doc.vp_h, GPU_DEFAULT_INIT_FLAGS);     
     doc.vg = vg_create(NULL, NVG_ANTIALIAS | NVG_STENCIL_STROKES | (NVG_DEBUG*(!!__DEBUG__)));         
@@ -632,12 +654,17 @@ int main(int argc, char **argv)
             }),            
             view_create((View){
                 .proto = &Header
-            }),           
-            view_create((View){
-                .proto = &Header
-            })            
+            })           
+            // view_create((View){
+            //     .proto = &Header
+            // })            
         }
     });
+
+    /*
+    
+
+    */
 
     // View_Id root = view_create((View){
     //     .proto = &Header
